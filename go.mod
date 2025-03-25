@@ -1,9 +1,10 @@
 module github.com/omnes-tech/multicall
 
 go 1.22.3
+toolchain go1.24.1
 
 require (
-	github.com/ethereum/go-ethereum v1.14.13
+	github.com/ethereum/go-ethereum v1.15.6
 	github.com/omnes-tech/abi v0.1.36
 )
 
@@ -25,11 +26,11 @@ require (
 	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
-	github.com/supranational/blst v0.3.13 // indirect
+	github.com/supranational/blst v0.3.14 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.9.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
