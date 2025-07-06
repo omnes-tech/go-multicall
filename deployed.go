@@ -124,7 +124,7 @@ func write(
 
 func txAsReadWithFailure(
 	calls CallsWithFailure, requireSuccess bool, client *ethclient.Client, to *common.Address,
-	funcSignature string, txReturnTypes []string, multiCallType *MultiCallType, blockNumber *big.Int,
+	funcSignature string, txReturnTypes []string, blockNumber *big.Int,
 ) Result {
 	return asRead(
 		calls,
@@ -133,14 +133,13 @@ func txAsReadWithFailure(
 		to,
 		funcSignature,
 		txReturnTypes,
-		multiCallType,
 		blockNumber,
 	)
 }
 
 func txAsRead(
 	calls Calls, requireSuccess bool, client *ethclient.Client, to *common.Address,
-	funcSignature string, txReturnTypes []string, multiCallType *MultiCallType, blockNumber *big.Int,
+	funcSignature string, txReturnTypes []string, blockNumber *big.Int,
 ) Result {
 	return asRead(
 		calls,
@@ -149,14 +148,13 @@ func txAsRead(
 		to,
 		funcSignature,
 		txReturnTypes,
-		multiCallType,
 		blockNumber,
 	)
 }
 
 func asRead(
 	calls CallsInterface, requireSuccess bool, client *ethclient.Client, to *common.Address,
-	funcSignature string, txReturnTypes []string, multiCallType *MultiCallType, blockNumber *big.Int,
+	funcSignature string, txReturnTypes []string, blockNumber *big.Int,
 ) Result {
 	arrayfiedCalls, _, err := calls.ToArray(true, false)
 	if err != nil {
@@ -180,7 +178,6 @@ func asRead(
 		callData,
 		txReturnTypes,
 		false,
-		multiCallType,
 		nil,
 		blockNumber,
 	)
@@ -193,7 +190,7 @@ func asRead(
 
 func call(
 	calls Calls, requireSuccess bool, client *ethclient.Client, to *common.Address, funcSignature string,
-	txReturnTypes []string, multiCallType *MultiCallType, writeAddress *common.Address,
+	txReturnTypes []string, multicallAddress *common.Address,
 	blockNumber *big.Int, isSimulation bool,
 ) Result {
 	return read(
@@ -203,8 +200,7 @@ func call(
 		to,
 		funcSignature,
 		txReturnTypes,
-		multiCallType,
-		writeAddress,
+		multicallAddress,
 		blockNumber,
 		isSimulation,
 	)
@@ -212,7 +208,7 @@ func call(
 
 func callWithFailure(
 	calls CallsWithFailure, client *ethclient.Client, to *common.Address, funcSignature string,
-	txReturnTypes []string, multiCallType *MultiCallType, writeAddress *common.Address, blockNumber *big.Int,
+	txReturnTypes []string, multicallAddress *common.Address, blockNumber *big.Int,
 ) Result {
 	return read(
 		calls,
@@ -221,8 +217,7 @@ func callWithFailure(
 		to,
 		funcSignature,
 		txReturnTypes,
-		multiCallType,
-		writeAddress,
+		multicallAddress,
 		blockNumber,
 		false,
 	)
@@ -230,7 +225,7 @@ func callWithFailure(
 
 func read(
 	calls CallsInterface, requireSuccess bool, client *ethclient.Client, to *common.Address, funcSignature string,
-	txReturnTypes []string, multiCallType *MultiCallType, writeAddress *common.Address, blockNumber *big.Int,
+	txReturnTypes []string, multicallAddress *common.Address, blockNumber *big.Int,
 	isSimulation bool,
 ) Result {
 	arrayfiedCalls, _, err := calls.ToArray(false, false)
@@ -260,8 +255,7 @@ func read(
 		callData,
 		txReturnTypes,
 		isSimulation,
-		multiCallType,
-		writeAddress,
+		multicallAddress,
 		blockNumber,
 	)
 	if err != nil {
@@ -310,10 +304,10 @@ func getData(
 
 func makeCall(
 	calls CallsInterface, client *ethclient.Client, to *common.Address, callData []byte, txReturnTypes []string,
-	isSimulation bool, multiCallType *MultiCallType, writeAddress *common.Address, blockNumber *big.Int,
+	isSimulation bool, multicallAddress *common.Address, blockNumber *big.Int,
 ) ([]any, []any, TxOrCall, error) {
 	if !true {
-		log.Println(writeAddress)
+		log.Println(multicallAddress)
 	}
 
 	var decodedCallResult []any
@@ -340,8 +334,7 @@ func makeCall(
 		}
 	}
 	if len(encodedCallResult) == 0 {
-		*multiCallType = DEPLOYLESS
-		writeAddress = nil
+		multicallAddress = nil
 	}
 
 	if !isSimulation {

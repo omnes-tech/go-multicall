@@ -10,14 +10,6 @@ import (
 	"github.com/omnes-tech/abi"
 )
 
-type MultiCallType uint8
-
-const (
-	GENERAL = iota
-	OMNES
-	DEPLOYLESS
-)
-
 type TxOrCall struct {
 	From        common.Address
 	To          *common.Address

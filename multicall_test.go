@@ -16,15 +16,14 @@ func ExampleNewClient() {
 		panic(err)
 	}
 
-	mcall, err := multicall.NewMultiCall(multicall.GENERAL, client, nil)
+	mcall, err := multicall.NewMultiCall(client, nil)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("MultiCallType: %d WriteAddress: %s ReadAddress: %s",
-		mcall.MultiCallType, mcall.WriteAddress, mcall.ReadAddress)
+	fmt.Printf("multicallAddress: %s", mcall.ContractAddress)
 
-	// Output: MultiCallType: 0 WriteAddress: 0xcA11bde05977b3631167028862bE2a173976CA11 ReadAddress: 0xc4CE14dCBfacf913dCC06a659672dc6d412C50D5
+	// Output: MultiCallType: 0 multicallAddress: 0xcA11bde05977b3631167028862bE2a173976CA11 ReadAddress: 0xc4CE14dCBfacf913dCC06a659672dc6d412C50D5
 }
 
 func ExampleMultiCall_SimulateCall() {
@@ -34,7 +33,7 @@ func ExampleMultiCall_SimulateCall() {
 		panic(err)
 	}
 
-	mcall, err := multicall.NewMultiCall(multicall.GENERAL, client, nil)
+	mcall, err := multicall.NewMultiCall(client, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +67,7 @@ func ExampleMultiCall_AggregateStatic() {
 		panic(err)
 	}
 
-	mcall, err := multicall.NewMultiCall(multicall.GENERAL, client, nil)
+	mcall, err := multicall.NewMultiCall(client, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -108,7 +107,7 @@ func ExampleMultiCall_TryAggregateStatic() {
 		panic(err)
 	}
 
-	mcall, err := multicall.NewMultiCall(multicall.GENERAL, client, nil)
+	mcall, err := multicall.NewMultiCall(client, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -148,7 +147,7 @@ func ExampleMultiCall_TryAggregateStatic3() {
 		panic(err)
 	}
 
-	mcall, err := multicall.NewMultiCall(multicall.GENERAL, client, nil)
+	mcall, err := multicall.NewMultiCall(client, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -189,7 +188,7 @@ func ExampleMultiCall_CodeLengths() {
 		panic(err)
 	}
 
-	mcall, err := multicall.NewMultiCall(multicall.GENERAL, client, nil)
+	mcall, err := multicall.NewMultiCall(client, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -215,7 +214,7 @@ func ExampleMultiCall_Balances() {
 		panic(err)
 	}
 
-	mcall, err := multicall.NewMultiCall(multicall.GENERAL, client, nil)
+	mcall, err := multicall.NewMultiCall(client, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -239,7 +238,7 @@ func ExampleMultiCall_AddressesData() {
 		panic(err)
 	}
 
-	mcall, err := multicall.NewMultiCall(multicall.GENERAL, client, nil)
+	mcall, err := multicall.NewMultiCall(client, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -263,7 +262,7 @@ func ExampleMultiCall_ChainData() {
 		panic(err)
 	}
 
-	mcall, err := multicall.NewMultiCall(multicall.GENERAL, client, nil)
+	mcall, err := multicall.NewMultiCall(client, nil)
 	if err != nil {
 		panic(err)
 	}
