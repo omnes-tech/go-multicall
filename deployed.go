@@ -411,6 +411,7 @@ func decodeAggregateCallsResult(result []any, calls CallsInterface) ([]any, erro
 						if err != nil {
 							return nil, err
 						}
+						decodedR = append([]any{anyR[0]}, decodedR...)
 					}
 				}
 			}
