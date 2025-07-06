@@ -340,6 +340,8 @@ func makeCall(
 	}
 
 	if !isSimulation {
+		fmt.Println("Encoded Call Result:", common.Bytes2Hex(encodedCallResult))
+		fmt.Println("Return types:", txReturnTypes)
 		decodedCallResult, err = abi.Decode(txReturnTypes, encodedCallResult)
 		if err != nil {
 			return nil, nil, TxOrCall{}, err
@@ -393,21 +395,34 @@ func decodeAggregateCallsResult(result []any, calls CallsInterface) ([]any, erro
 	var decodedResult []any
 	for i, res := range result {
 		returnTypes := calls.GetReturnTypes(i)
+		fmt.Println("Return types for call", i, ":", returnTypes)
+		fmt.Println("Result for call", i, ":", res)
 		if returnTypes != nil || len(returnTypes) > 0 {
 			r, ok := res.([]byte)
+			var decodedR []any
+			var err error
 			if ok {
-				decodedR, err := abi.Decode(returnTypes, r)
+				decodedR, err = abi.Decode(returnTypes, r)
 				if err != nil {
 					return nil, err
 				}
-
-				decodedResult = append(decodedResult, decodedR)
 			} else {
-				decodedResult = append(decodedResult, res.([]any))
+				anyR, ok := res.([]any)
+				if ok {
+					rr, ok := anyR[1].([]byte)
+					if ok {
+						decodedR, err = abi.Decode(returnTypes, rr)
+						if err != nil {
+							return nil, err
+						}
+					}
+				}
 			}
-		} else {
-			decodedResult = append(decodedResult, res.([]any))
+			decodedResult = append(decodedResult, decodedR)
+			continue
 		}
+
+		decodedResult = append(decodedResult, res.([]any))
 	}
 
 	return decodedResult, nil
