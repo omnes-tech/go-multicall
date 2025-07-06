@@ -340,8 +340,6 @@ func makeCall(
 	}
 
 	if !isSimulation {
-		fmt.Println("Encoded Call Result:", common.Bytes2Hex(encodedCallResult))
-		fmt.Println("Return types:", txReturnTypes)
 		decodedCallResult, err = abi.Decode(txReturnTypes, encodedCallResult)
 		if err != nil {
 			return nil, nil, TxOrCall{}, err
@@ -395,8 +393,6 @@ func decodeAggregateCallsResult(result []any, calls CallsInterface) ([]any, erro
 	var decodedResult []any
 	for i, res := range result {
 		returnTypes := calls.GetReturnTypes(i)
-		fmt.Println("Return types for call", i, ":", returnTypes)
-		fmt.Println("Result for call", i, ":", res)
 		if returnTypes != nil || len(returnTypes) > 0 {
 			r, ok := res.([]byte)
 			var decodedR []any
