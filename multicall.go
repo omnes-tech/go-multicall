@@ -44,6 +44,9 @@ func (m *MultiCall) AggregateCalls(
 	if m.Signer == nil && !isCall {
 		return Result{Success: false, Error: fmt.Errorf("no signer configured")}
 	}
+	if m.ContractAddress == nil {
+		return Result{Success: false, Error: fmt.Errorf("no multicall contract on this chain")}
+	}
 
 	if isCall {
 		return txAsRead(
@@ -77,6 +80,9 @@ func (m *MultiCall) TryAggregateCalls(
 	if m.Signer == nil && !isCall {
 		return Result{Success: false, Error: fmt.Errorf("no signer configured")}
 	}
+	if m.ContractAddress == nil {
+		return Result{Success: false, Error: fmt.Errorf("no multicall contract on this chain")}
+	}
 
 	if isCall {
 		return txAsRead(
@@ -109,6 +115,9 @@ func (m *MultiCall) TryAggregateCalls3(
 ) Result {
 	if m.Signer == nil && !isCall {
 		return Result{Success: false, Error: fmt.Errorf("no signer configured")}
+	}
+	if m.ContractAddress == nil {
+		return Result{Success: false, Error: fmt.Errorf("no multicall contract on this chain")}
 	}
 
 	if isCall {
