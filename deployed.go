@@ -330,6 +330,8 @@ func makeCall(
 				for i, result := range decodedCallResult {
 					decodedCallResult[i].([]any)[1] = common.Bytes2Hex(result.([]any)[1].([]byte))
 				}
+			} else {
+				return nil, nil, TxOrCall{}, fmt.Errorf("error decoding revert reason: %s", common.Bytes2Hex(encodedRevert))
 			}
 		}
 	}
