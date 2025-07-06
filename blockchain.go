@@ -104,7 +104,12 @@ func parseRevertData(err error) ([]byte, bool) {
 	var ec rpc.Error
 	var ed rpc.DataError
 	if errors.As(err, &ec) && errors.As(err, &ed) && ec.ErrorCode() == 3 {
-		revertData := hexutil.MustDecode(ed.ErrorData().(string))
+		errorData, ok := ed.ErrorData().(string)
+		if !ok {
+			return nil, false
+		}
+
+		revertData := hexutil.MustDecode(errorData)
 
 		return revertData, true
 
