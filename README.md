@@ -16,7 +16,7 @@ go get github.com/omnes-tech/multicall
 
 Instantiate the multicall client:
 ```go
-client, err := multicall.NewClient(multicall.GENERAL, "http://localhost:8545", nil)
+client, err := multicall.NewClient("http://localhost:8545", nil)
 if err!= nil {
     log.Fatal(err)
 }
