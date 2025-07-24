@@ -404,7 +404,20 @@ func decodeAggregateCallsResult(result []any, calls CallsInterface) ([]any, erro
 				}
 			} else {
 				anyR, ok := res.([]any)
-				if ok {
+				if len(anyR) == 1 {
+					innerDecodedResult, err := decodeAggregateCallsResult(anyR, calls)
+					if err != nil {
+						return nil, err
+					}
+					for len(innerDecodedResult) == 1 {
+						inIDR, ok := innerDecodedResult[0].([]any)
+						if !ok {
+							break
+						}
+						innerDecodedResult = inIDR
+					}
+					decodedR = append(decodedR, innerDecodedResult...)
+				} else if ok {
 					rr, ok := anyR[1].([]byte)
 					if ok {
 						decodedR, err = abi.Decode(returnTypes, rr)
