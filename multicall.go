@@ -303,5 +303,14 @@ func (m *MultiCall) ChainData(client *ethclient.Client, blockNumber *big.Int) Re
 		},
 		blockNumber,
 	)
+}
 
+// IsDeployed checks if the multicall contract is deployed on the chain.
+func (m *MultiCall) IsDeployed() bool {
+	return m.ContractAddress != nil
+}
+
+// IsDeployless checks if the multicall contract is deployless.
+func (m *MultiCall) IsDeployless() bool {
+	return m.ContractAddress == nil
 }
