@@ -160,7 +160,11 @@ func NewCalls(
 	for i, target := range targets {
 		args, callData, returnTypes, value := setParameters(i, argss, callDatas, returnTypess, values)
 
-		calls[i] = NewCall(target, funcSignatures[i], args, callData, returnTypes, value)
+		if funcSignatures == nil {
+			calls[i] = NewCall(target, "", args, callData, returnTypes, value)
+		} else {
+			calls[i] = NewCall(target, funcSignatures[i], args, callData, returnTypes, value)
+		}
 	}
 
 	return calls
@@ -192,7 +196,11 @@ func NewCallsWithFailure(
 	for i, target := range targets {
 		args, callData, returnTypes, value := setParameters(i, argss, callDatas, returnTypess, values)
 
-		calls[i] = NewCallWithFailure(target, funcSignatures[i], args, callData, returnTypes, value, requireSuccesss[i])
+		if funcSignatures == nil {
+			calls[i] = NewCallWithFailure(target, "", args, callData, returnTypes, value, requireSuccesss[i])
+		} else {
+			calls[i] = NewCallWithFailure(target, funcSignatures[i], args, callData, returnTypes, value, requireSuccesss[i])
+		}
 	}
 
 	return calls
