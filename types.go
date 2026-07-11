@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/omnes-tech/abi"
 )
@@ -81,6 +82,14 @@ type Result struct {
 	Result   any
 	Error    error
 	TxOrCall TxOrCall
+}
+
+func (r *Result) Print(full bool) {
+	if full {
+		fmt.Printf("%+v\n", r)
+	} else {
+		fmt.Printf("Success: %+v, Result: %+v \n", r.Success, r.Result)
+	}
 }
 
 type commonCall struct {
@@ -409,4 +418,41 @@ func (c CallsWithFailure) ToArray(withValue bool, isMultiCall3Type bool) ([]any,
 	}
 
 	return result, summed, nil
+}
+
+// StateOverride matches the shape geth expects for eth_call overrides
+// StateDiff: patch specific storage slots, leave rest untouched
+// State: replace entire storage, unset slots become zero
+// Balance: override ETH balance
+// Nonce: override account nonce
+// Code: replace contract bytecode entirely
+type OverrideAccount struct {
+	StateDiff map[common.Hash]common.Hash `json:"stateDiff,omitempty"`
+	State     map[common.Hash]common.Hash `json:"state,omitempty"`
+	Balance   *hexutil.Big                `json:"balance,omitempty"`
+	Nonce     *hexutil.Uint64             `json:"nonce,omitempty"`
+	Code      hexutil.Bytes               `json:"code,omitempty"`
+}
+
+type StateOverride map[common.Address]OverrideAccount
+
+type Overrides struct {
+	From           *common.Address
+	StateOverrides StateOverride
+	BlockNumber    *big.Int
+}
+
+// CallMsg-equivalent as a raw map that handles JSON-marshaled RPC data
+type CallArgs struct {
+	From common.Address  `json:"from,omitempty"`
+	To   *common.Address `json:"to,omitempty"`
+	Data hexutil.Bytes   `json:"data,omitempty"`
+}
+
+func (c *CallArgs) ToEthereumCallMsg() *ethereum.CallMsg {
+	return &ethereum.CallMsg{
+		From: c.From,
+		To:   c.To,
+		Data: c.Data,
+	}
 }

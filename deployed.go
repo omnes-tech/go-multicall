@@ -123,38 +123,45 @@ func write(
 }
 
 func txAsReadWithFailure(
-	calls CallsWithFailure, requireSuccess bool, client *ethclient.Client, to *common.Address,
+	calls CallsWithFailure, requireSuccess bool, client *ethclient.Client, from *common.Address, to *common.Address,
 	funcSignature string, txReturnTypes []string, blockNumber *big.Int,
+	overrides StateOverride,
 ) Result {
 	return asRead(
 		calls,
 		requireSuccess,
 		client,
+		from,
 		to,
 		funcSignature,
 		txReturnTypes,
 		blockNumber,
+		overrides,
 	)
 }
 
 func txAsRead(
-	calls Calls, requireSuccess bool, client *ethclient.Client, to *common.Address,
+	calls Calls, requireSuccess bool, client *ethclient.Client, from *common.Address, to *common.Address,
 	funcSignature string, txReturnTypes []string, blockNumber *big.Int,
+	overrides StateOverride,
 ) Result {
 	return asRead(
 		calls,
 		requireSuccess,
 		client,
+		from,
 		to,
 		funcSignature,
 		txReturnTypes,
 		blockNumber,
+		overrides,
 	)
 }
 
 func asRead(
-	calls CallsInterface, requireSuccess bool, client *ethclient.Client, to *common.Address,
+	calls CallsInterface, requireSuccess bool, client *ethclient.Client, from *common.Address, to *common.Address,
 	funcSignature string, txReturnTypes []string, blockNumber *big.Int,
+	overrides StateOverride,
 ) Result {
 	arrayfiedCalls, _, err := calls.ToArray(true, false)
 	if err != nil {
@@ -174,12 +181,14 @@ func asRead(
 	decodedCallResult, decodedAggregatedCallsResultVar, call, err := makeCall(
 		calls,
 		client,
+		from,
 		to,
 		callData,
 		txReturnTypes,
 		false,
 		nil,
 		blockNumber,
+		overrides,
 	)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: call}
@@ -189,46 +198,53 @@ func asRead(
 }
 
 func call(
-	calls Calls, requireSuccess bool, client *ethclient.Client, to *common.Address, funcSignature string,
+	calls Calls, requireSuccess bool, client *ethclient.Client, from *common.Address, to *common.Address, funcSignature string,
 	txReturnTypes []string, multicallAddress *common.Address,
-	blockNumber *big.Int, isSimulation bool,
+	blockNumber *big.Int, isSimulation bool, withValue bool, overrides StateOverride,
 ) Result {
 	return read(
 		calls,
 		requireSuccess,
 		client,
+		from,
 		to,
 		funcSignature,
 		txReturnTypes,
 		multicallAddress,
 		blockNumber,
 		isSimulation,
+		withValue,
+		overrides,
 	)
 }
 
 func callWithFailure(
-	calls CallsWithFailure, client *ethclient.Client, to *common.Address, funcSignature string,
+	calls CallsWithFailure, client *ethclient.Client, from *common.Address, to *common.Address, funcSignature string,
 	txReturnTypes []string, multicallAddress *common.Address, blockNumber *big.Int,
+	overrides StateOverride,
 ) Result {
 	return read(
 		calls,
 		false,
 		client,
+		from,
 		to,
 		funcSignature,
 		txReturnTypes,
 		multicallAddress,
 		blockNumber,
 		false,
+		false,
+		overrides,
 	)
 }
 
 func read(
-	calls CallsInterface, requireSuccess bool, client *ethclient.Client, to *common.Address, funcSignature string,
+	calls CallsInterface, requireSuccess bool, client *ethclient.Client, from *common.Address, to *common.Address, funcSignature string,
 	txReturnTypes []string, multicallAddress *common.Address, blockNumber *big.Int,
-	isSimulation bool,
+	isSimulation bool, withValue bool, overrides StateOverride,
 ) Result {
-	arrayfiedCalls, _, err := calls.ToArray(false, false)
+	arrayfiedCalls, _, err := calls.ToArray(withValue, false)
 	if err != nil {
 		return Result{Success: false, Error: err}
 	}
@@ -251,12 +267,14 @@ func read(
 	decodedCallResult, decodedAggregatedCallsResultVar, call, err := makeCall(
 		calls,
 		client,
+		from,
 		to,
 		callData,
 		txReturnTypes,
 		isSimulation,
 		multicallAddress,
 		blockNumber,
+		overrides,
 	)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: call}
@@ -281,7 +299,7 @@ func getData(
 		return Result{Success: false, Error: err}
 	}
 
-	encodedCallResult, call, err := readContract(client, &ZERO_ADDRESS, to, callData, blockNumber)
+	encodedCallResult, call, err := readContract(client, &ZERO_ADDRESS, to, callData, blockNumber, nil)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: FromCallToTxOrCall(call, blockNumber)}
 	}
@@ -303,38 +321,44 @@ func getData(
 }
 
 func makeCall(
-	calls CallsInterface, client *ethclient.Client, to *common.Address, callData []byte, txReturnTypes []string,
-	isSimulation bool, multicallAddress *common.Address, blockNumber *big.Int,
+	calls CallsInterface, client *ethclient.Client, from *common.Address, to *common.Address, callData []byte, txReturnTypes []string,
+	isSimulation bool, multicallAddress *common.Address, blockNumber *big.Int, overrides StateOverride,
 ) ([]any, []any, TxOrCall, error) {
 	if !true {
 		log.Println(multicallAddress)
 	}
 
 	var decodedCallResult []any
-	encodedCallResult, call, err := readContract(client, &ZERO_ADDRESS, to, callData, blockNumber)
+	encodedCallResult, call, err := readContract(client, from, to, callData, blockNumber, overrides)
 	if err != nil && !isSimulation {
 		return nil, nil, TxOrCall{}, err
 	} else if isSimulation {
 		if strings.Contains(err.Error(), "execution reverted") {
 			encodedRevert, ok := parseRevertData(err)
 			if ok {
-				decodedCallResult, err := abi.DecodeWithSignature(
+				decodedCallResult, err = abi.DecodeWithSignature(
 					"MultiCall__Simulation((bool,bytes,uint256)[])",
 					encodedRevert,
 				)
 				if err != nil {
 					return nil, nil, TxOrCall{}, err
 				}
-				decodedCallResult = decodedCallResult[0].([]any)
 
+				decodedCallResult = decodedCallResult[0].([]any)
 				for i, result := range decodedCallResult {
-					decodedCallResult[i].([]any)[1] = common.Bytes2Hex(result.([]any)[1].([]byte))
+					varValue := result.([]any)[1].([]byte)
+					if len(varValue) > 0 {
+						decodedCallResult[i].([]any)[1] = Add0xPrefix(common.Bytes2Hex(varValue))
+					} else {
+						decodedCallResult[i].([]any)[1] = "0x"
+					}
 				}
 			} else {
 				return nil, nil, TxOrCall{}, fmt.Errorf("error decoding revert reason: %s", common.Bytes2Hex(encodedRevert))
 			}
 		}
 	}
+
 	if len(encodedCallResult) == 0 {
 		multicallAddress = nil
 	}

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/omnes-tech/abi"
 )
@@ -30,7 +31,7 @@ type CallsWithRequireSuccess struct {
 	RequireSuccess bool
 }
 
-func deploylessSimulation(calls Calls, client *ethclient.Client, blockNumber *big.Int) Result {
+func deploylessSimulation(calls Calls, client *ethclient.Client, from *common.Address, blockNumber *big.Int, overrides StateOverride) Result {
 	arrayfiedCalls, _, err := calls.ToArray(true, false)
 	if err != nil {
 		return Result{Success: false, Error: err}
@@ -40,9 +41,11 @@ func deploylessSimulation(calls Calls, client *ethclient.Client, blockNumber *bi
 		arrayfiedCalls,
 		false,
 		SIMULATE_CALL,
+		from,
 		client,
 		[]string{"(address,bytes,uint256)[]"},
 		blockNumber,
+		overrides,
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "execution reverted") {
@@ -74,7 +77,7 @@ func deploylessSimulation(calls Calls, client *ethclient.Client, blockNumber *bi
 	return Result{Success: false, Error: fmt.Errorf("call did not returned simulation result"), TxOrCall: txOrCall}
 }
 
-func deploylessAggregateStatic(calls Calls, client *ethclient.Client, blockNumber *big.Int) Result {
+func deploylessAggregateStatic(calls Calls, client *ethclient.Client, from *common.Address, blockNumber *big.Int, overrides StateOverride) Result {
 	arrayfiedCalls, _, err := calls.ToArray(false, false)
 	if err != nil {
 		return Result{Success: false, Error: err}
@@ -84,9 +87,11 @@ func deploylessAggregateStatic(calls Calls, client *ethclient.Client, blockNumbe
 		arrayfiedCalls,
 		false,
 		STATIC_CALL,
+		from,
 		client,
 		[]string{"(address,bytes)[]"},
 		blockNumber,
+		overrides,
 	)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: txOrCall}
@@ -112,7 +117,7 @@ func deploylessAggregateStatic(calls Calls, client *ethclient.Client, blockNumbe
 }
 
 func deploylessTryAggregateStatic(
-	calls Calls, requireSuccess bool, client *ethclient.Client, blockNumber *big.Int,
+	calls Calls, requireSuccess bool, client *ethclient.Client, from *common.Address, blockNumber *big.Int, overrides StateOverride,
 ) Result {
 	arrayfiedCalls, _, err := calls.ToArray(false, false)
 	if err != nil {
@@ -123,9 +128,11 @@ func deploylessTryAggregateStatic(
 		arrayfiedCalls,
 		requireSuccess,
 		TRY_STATIC_CALL,
+		from,
 		client,
 		[]string{"(address,bytes)[]", "bool"},
 		blockNumber,
+		overrides,
 	)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: txOrCall}
@@ -151,7 +158,7 @@ func deploylessTryAggregateStatic(
 }
 
 func deploylessTryAggregateStatic3(
-	calls CallsWithFailure, client *ethclient.Client, blockNumber *big.Int,
+	calls CallsWithFailure, client *ethclient.Client, from *common.Address, blockNumber *big.Int, overrides StateOverride,
 ) Result {
 	arrayfiedCalls, _, err := calls.ToArray(false, false)
 	if err != nil {
@@ -162,9 +169,11 @@ func deploylessTryAggregateStatic3(
 		arrayfiedCalls,
 		false,
 		TRY_STATIC_CALL2,
+		from,
 		client,
 		[]string{"(address,bytes,bool)[]"},
 		blockNumber,
+		overrides,
 	)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: txOrCall}
@@ -194,7 +203,7 @@ func deploylessGetCodeLengths(
 ) Result {
 
 	rawResponse, txOrCall, err := makeDeploylessCall(
-		toAnyArray(addresses), false, CODE_LENGTH, client, []string{"address[]"}, blockNumber,
+		toAnyArray(addresses), false, CODE_LENGTH, nil, client, []string{"address[]"}, blockNumber, nil,
 	)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: txOrCall}
@@ -214,7 +223,7 @@ func deploylessGetBalances(
 ) Result {
 
 	rawResponse, txOrCall, err := makeDeploylessCall(
-		toAnyArray(addresses), false, BALANCES, client, []string{"address[]"}, blockNumber,
+		toAnyArray(addresses), false, BALANCES, nil, client, []string{"address[]"}, blockNumber, nil,
 	)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: txOrCall}
@@ -234,7 +243,7 @@ func deploylessGetAddressesData(
 ) Result {
 
 	rawResponse, txOrCall, err := makeDeploylessCall(
-		toAnyArray(addresses), false, ADDRESSES_DATA, client, []string{"address[]"}, blockNumber,
+		toAnyArray(addresses), false, ADDRESSES_DATA, nil, client, []string{"address[]"}, blockNumber, nil,
 	)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: txOrCall}
@@ -256,7 +265,7 @@ func deploylessGetAddressesData(
 func deploylessGetChainData(client *ethclient.Client, blockNumber *big.Int) Result {
 
 	rawResponse, txOrCall, err := makeDeploylessCall(
-		nil, false, CHAIN_DATA, client, nil, blockNumber,
+		nil, false, CHAIN_DATA, nil, client, nil, blockNumber, nil,
 	)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: txOrCall}
@@ -285,7 +294,7 @@ func deploylessGetChainData(client *ethclient.Client, blockNumber *big.Int) Resu
 
 func makeDeploylessCall(
 	params []any, requireSuccess bool, callType CallType,
-	client *ethclient.Client, typeStrs []string, blockNumber *big.Int,
+	from *common.Address, client *ethclient.Client, typeStrs []string, blockNumber *big.Int, overrides StateOverride,
 ) (string, TxOrCall, error) {
 	var encoded []byte
 	var err error
@@ -310,18 +319,29 @@ func makeDeploylessCall(
 
 	data := DEPLOYLESS_MULTICALL_BYTECODE + common.Bytes2Hex(encodedParamsToDeploy)
 
-	var blockNumberStr string
+	var blockIdentifier string
 	if blockNumber != nil {
-		blockNumberStr = blockNumber.String()
+		blockIdentifier = hexutil.EncodeBig(blockNumber)
 	} else {
-		blockNumberStr = "latest"
+		blockIdentifier = "latest"
+	}
+
+	var call CallArgs
+	if from == nil {
+		call = CallArgs{
+			To:   nil,
+			Data: hexutil.Bytes(data),
+		}
+	} else {
+		call = CallArgs{
+			From: *from,
+			To:   nil,
+			Data: hexutil.Bytes(data),
+		}
 	}
 
 	var rawResponse string
-	err = client.Client().CallContext(context.Background(), &rawResponse, "eth_call", map[string]interface{}{
-		"to":   nil, // This is a deployless call, so `to` is `nil`
-		"data": data,
-	}, blockNumberStr)
+	err = client.Client().CallContext(context.Background(), &rawResponse, "eth_call", call, blockIdentifier, overrides)
 	if err != nil {
 		return rawResponse, TxOrCall{}, fmt.Errorf("error making deployless call: %w, with data: %s", err, data)
 	}

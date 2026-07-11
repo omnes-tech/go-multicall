@@ -10,7 +10,7 @@ import (
 )
 
 func ExampleNewClient() {
-	rpc := "https://eth.llamarpc.com"
+	rpc := "https://eth-mainnet.g.alchemy.com/public"
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		panic(err)
@@ -23,11 +23,11 @@ func ExampleNewClient() {
 
 	fmt.Printf("multicallAddress: %s", mcall.ContractAddress)
 
-	// Output: MultiCallType: 0 multicallAddress: 0xcA11bde05977b3631167028862bE2a173976CA11 ReadAddress: 0xc4CE14dCBfacf913dCC06a659672dc6d412C50D5
+	// Output: multicallAddress: 0xc4CE14dCBfacf913dCC06a659672dc6d412C50D5
 }
 
 func ExampleMultiCall_SimulateCall() {
-	rpc := "https://eth.llamarpc.com"
+	rpc := "https://eth-mainnet.g.alchemy.com/public"
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		panic(err)
@@ -52,16 +52,15 @@ func ExampleMultiCall_SimulateCall() {
 	}
 
 	calls := multicall.NewCalls(targets, funcSigs, nil, nil, nil, values)
+	results := mcall.SimulateCall(calls, client, nil, nil, nil)
 
-	results := mcall.SimulateCall(calls, client, nil)
+	results.Print(false)
 
-	fmt.Println(results)
-
-	// Output: {true [[true  33921] [true  9521]] <nil>}
+	// Output: Success: true, Result: [[false 0x +10713] [false 0x +8213]]
 }
 
 func ExampleMultiCall_AggregateStatic() {
-	rpc := "https://eth.llamarpc.com"
+	rpc := "https://eth-mainnet.g.alchemy.com/public"
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		panic(err)
@@ -93,15 +92,15 @@ func ExampleMultiCall_AggregateStatic() {
 
 	calls := multicall.NewCalls(targets, funcSigs, argss, nil, returnTypes, nil)
 
-	results := mcall.AggregateStatic(calls, client, nil)
+	results := mcall.AggregateStatic(calls, client, nil, nil, nil)
 
-	fmt.Println(results)
+	results.Print(false)
 
-	// Output: {true [[1085420955917931147422] [1085420955917931147422]] <nil>}
+	// Output: Success: true, Result: [[+1088879090944244880639] [+1088879090944244880639]]
 }
 
 func ExampleMultiCall_TryAggregateStatic() {
-	rpc := "https://eth.llamarpc.com"
+	rpc := "https://eth-mainnet.g.alchemy.com/public"
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		panic(err)
@@ -133,15 +132,15 @@ func ExampleMultiCall_TryAggregateStatic() {
 
 	calls := multicall.NewCalls(targets, funcSigs, argss, nil, returnTypes, nil)
 
-	results := mcall.TryAggregateStatic(calls, true, client, nil)
+	results := mcall.TryAggregateStatic(calls, true, client, nil, nil, nil)
 
-	fmt.Println(results)
+	results.Print(false)
 
-	// Output: {true [[true [1085420955917931147422]] [true [1085420955917931147422]]] <nil>}
+	// Output: Success: true, Result: [[true +1088879090944244880639] [true +1088879090944244880639]]
 }
 
 func ExampleMultiCall_TryAggregateStatic3() {
-	rpc := "https://eth.llamarpc.com"
+	rpc := "https://eth-mainnet.g.alchemy.com/public"
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		panic(err)
@@ -174,15 +173,15 @@ func ExampleMultiCall_TryAggregateStatic3() {
 
 	calls := multicall.NewCallsWithFailure(targets, funcSigs, argss, nil, returnTypes, nil, requireSuccess)
 
-	results := mcall.TryAggregateStatic3(calls, client, nil)
+	results := mcall.TryAggregateStatic3(calls, client, nil, nil, nil)
 
-	fmt.Println(results)
+	results.Print(false)
 
-	// Output: {true [[true [1085420955917931147422]] [true [1085420955917931147422]]] <nil>}
+	// Output: Success: true, Result: [[true +1088879090944244880639] [true +1088879090944244880639]]
 }
 
 func ExampleMultiCall_CodeLengths() {
-	rpc := "https://eth.llamarpc.com"
+	rpc := "https://eth-mainnet.g.alchemy.com/public"
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		panic(err)
@@ -202,13 +201,13 @@ func ExampleMultiCall_CodeLengths() {
 
 	results := mcall.CodeLengths(targets, client, nil)
 
-	fmt.Println(results)
+	results.Print(false)
 
-	// Output: {true [3124 3124] <nil>}
+	// Output: Success: true, Result: [[+3124 +3124]]
 }
 
 func ExampleMultiCall_Balances() {
-	rpc := "https://eth.llamarpc.com"
+	rpc := "https://eth-mainnet.g.alchemy.com/public"
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		panic(err)
@@ -228,11 +227,11 @@ func ExampleMultiCall_Balances() {
 
 	results := mcall.Balances(targets, client, nil)
 
-	fmt.Println(results)
+	results.Print(false)
 }
 
 func ExampleMultiCall_AddressesData() {
-	rpc := "https://eth.llamarpc.com"
+	rpc := "https://eth-mainnet.g.alchemy.com/public"
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		panic(err)
@@ -252,11 +251,11 @@ func ExampleMultiCall_AddressesData() {
 
 	results := mcall.AddressesData(targets, client, nil)
 
-	fmt.Println(results)
+	results.Print(false)
 }
 
 func ExampleMultiCall_ChainData() {
-	rpc := "https://eth.llamarpc.com"
+	rpc := "https://eth-mainnet.g.alchemy.com/public"
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		panic(err)
@@ -269,5 +268,5 @@ func ExampleMultiCall_ChainData() {
 
 	results := mcall.ChainData(client, nil)
 
-	fmt.Println(results)
+	results.Print(false)
 }

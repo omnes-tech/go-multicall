@@ -39,7 +39,7 @@ func NewMultiCall(client *ethclient.Client, signer *SignerInterface) (*MultiCall
 }
 
 func (m *MultiCall) AggregateCalls(
-	calls []Call, client *ethclient.Client, blockNumber *big.Int, isCall bool,
+	calls []Call, client *ethclient.Client, from *common.Address, blockNumber *big.Int, isCall bool, overrides StateOverride,
 ) Result {
 	if m.Signer == nil && !isCall {
 		return Result{Success: false, Error: fmt.Errorf("no signer configured")}
@@ -53,10 +53,12 @@ func (m *MultiCall) AggregateCalls(
 			calls,
 			false,
 			client,
+			from,
 			m.ContractAddress,
 			"aggregateCalls((address,bytes,uint256)[])",
 			[]string{"bytes[]"},
 			blockNumber,
+			overrides,
 		)
 	} else {
 		return transact(
@@ -75,7 +77,7 @@ func (m *MultiCall) AggregateCalls(
 }
 
 func (m *MultiCall) TryAggregateCalls(
-	calls []Call, requireSuccess bool, client *ethclient.Client, blockNumber *big.Int, isCall bool,
+	calls []Call, requireSuccess bool, client *ethclient.Client, from *common.Address, blockNumber *big.Int, isCall bool, overrides StateOverride,
 ) Result {
 	if m.Signer == nil && !isCall {
 		return Result{Success: false, Error: fmt.Errorf("no signer configured")}
@@ -89,10 +91,12 @@ func (m *MultiCall) TryAggregateCalls(
 			calls,
 			requireSuccess,
 			client,
+			from,
 			m.ContractAddress,
 			"tryAggregateCalls((address,bytes,uint256)[],bool)",
 			[]string{"(bool,bytes)[]"},
 			blockNumber,
+			overrides,
 		)
 	} else {
 		return transact(
@@ -111,7 +115,7 @@ func (m *MultiCall) TryAggregateCalls(
 }
 
 func (m *MultiCall) TryAggregateCalls3(
-	calls []CallWithFailure, client *ethclient.Client, blockNumber *big.Int, isCall bool,
+	calls []CallWithFailure, client *ethclient.Client, from *common.Address, blockNumber *big.Int, isCall bool, overrides StateOverride,
 ) Result {
 	if m.Signer == nil && !isCall {
 		return Result{Success: false, Error: fmt.Errorf("no signer configured")}
@@ -125,10 +129,12 @@ func (m *MultiCall) TryAggregateCalls3(
 			calls,
 			false,
 			client,
+			from,
 			m.ContractAddress,
 			"tryAggregateCalls((address,bytes,uint256,bool)[])",
 			[]string{"(bool,bytes)[]"},
 			blockNumber,
+			overrides,
 		)
 	} else {
 		return transactWithFailure(
@@ -147,83 +153,94 @@ func (m *MultiCall) TryAggregateCalls3(
 }
 
 func (m *MultiCall) SimulateCall(
-	calls []Call, client *ethclient.Client, blockNumber *big.Int,
+	calls []Call, client *ethclient.Client, from *common.Address, blockNumber *big.Int, overrides StateOverride,
 ) Result {
 	if m.ContractAddress == nil {
-		return deploylessSimulation(calls, client, blockNumber)
+		return deploylessSimulation(calls, client, from, blockNumber, overrides)
 	}
 
 	return call(
 		calls,
 		false,
 		client,
+		from,
 		m.ContractAddress,
-		"simulateCalls((address,bytes)[])",
+		"simulateCalls((address,bytes,uint256)[])",
 		nil,
 		m.ContractAddress,
 		blockNumber,
 		true,
+		true,
+		overrides,
 	)
 
 }
 
 func (m *MultiCall) AggregateStatic(
-	calls []Call, client *ethclient.Client, blockNumber *big.Int,
+	calls []Call, client *ethclient.Client, from *common.Address, blockNumber *big.Int, overrides StateOverride,
 ) Result {
 	if m.ContractAddress == nil {
-		return deploylessAggregateStatic(calls, client, blockNumber)
+		return deploylessAggregateStatic(calls, client, from, blockNumber, overrides)
 	}
 
 	return call(
 		calls,
 		false,
 		client,
+		from,
 		m.ContractAddress,
 		"aggregateStatic((address,bytes)[])",
 		[]string{"bytes[]"},
 		m.ContractAddress,
 		blockNumber,
 		false,
+		false,
+		overrides,
 	)
 
 }
 
 func (m *MultiCall) TryAggregateStatic(
-	calls []Call, requireSuccess bool, client *ethclient.Client, blockNumber *big.Int,
+	calls []Call, requireSuccess bool, client *ethclient.Client, from *common.Address, blockNumber *big.Int, overrides StateOverride,
 ) Result {
 	if m.ContractAddress == nil {
-		return deploylessTryAggregateStatic(calls, requireSuccess, client, blockNumber)
+		return deploylessTryAggregateStatic(calls, requireSuccess, client, from, blockNumber, overrides)
 	}
 
 	return call(
 		calls,
 		requireSuccess,
 		client,
+		from,
 		m.ContractAddress,
 		"tryAggregateStatic((address,bytes)[],bool)",
 		[]string{"(bool,bytes)[]"},
 		m.ContractAddress,
 		blockNumber,
 		false,
+		false,
+		overrides,
 	)
 
 }
 
 func (m *MultiCall) TryAggregateStatic3(
-	calls []CallWithFailure, client *ethclient.Client, blockNumber *big.Int,
+	calls []CallWithFailure, client *ethclient.Client, from *common.Address, blockNumber *big.Int, overrides StateOverride,
 ) Result {
 	if m.ContractAddress == nil {
-		return deploylessTryAggregateStatic3(calls, client, blockNumber)
+		return deploylessTryAggregateStatic3(calls, client, from, blockNumber, overrides)
 	}
 
 	return callWithFailure(
 		calls,
 		client,
+		from,
 		m.ContractAddress,
 		"tryAggregateStatic((address,bytes,bool)[])",
 		[]string{"(bool,bytes)[]"},
 		m.ContractAddress,
 		blockNumber,
+		overrides,
 	)
 
 }

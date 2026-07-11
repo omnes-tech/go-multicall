@@ -18,27 +18,37 @@ import (
 
 // readContract makes a call to a contract and returns the returned bytecode.
 func readContract(
-	client *ethclient.Client, from, to *common.Address, encodedCall []byte, blockNumber *big.Int,
+	client *ethclient.Client, from *common.Address, to *common.Address, encodedCall []byte, blockNumber *big.Int, overrides StateOverride,
 ) ([]byte, *ethereum.CallMsg, error) {
 	if from == nil {
 		from = &ZERO_ADDRESS
 	}
 
-	call := ethereum.CallMsg{
+	var blockIdentifier string
+	if blockNumber != nil {
+		blockIdentifier = hexutil.EncodeBig(blockNumber)
+	} else {
+		blockIdentifier = "latest"
+	}
+
+	call := CallArgs{
 		From: *from,
 		To:   to,
-		Data: encodedCall,
+		Data: hexutil.Bytes(encodedCall),
 	}
 
-	result, err := client.CallContract(context.Background(),
-		call,
-		blockNumber,
-	)
+	var result hexutil.Bytes
+	err := client.Client().CallContext(context.Background(), &result, "eth_call", call, blockIdentifier, overrides)
+
+	// result, err := client.CallContract(context.Background(),
+	// 	call,
+	// 	blockNumber,
+	// )
 	if err != nil {
-		return nil, nil, fmt.Errorf("error reading contract: %w, with data: %s", err, common.Bytes2Hex(encodedCall))
+		return nil, call.ToEthereumCallMsg(), fmt.Errorf("error reading contract: %w, with data: %s", err, common.Bytes2Hex(encodedCall))
 	}
 
-	return result, &call, nil
+	return []byte(result), call.ToEthereumCallMsg(), nil
 }
 
 // createTransaction creates a new transaction object.
