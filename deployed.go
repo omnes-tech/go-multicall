@@ -70,17 +70,17 @@ func write(
 
 	tx, err := createTransaction(client, signer.GetAddress(), to, msgValue, callData)
 	if err != nil {
-		return Result{Success: false, Error: err, TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), nil)}
+		return Result{Success: false, Error: err, TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), nil, nil)}
 	}
 
 	chainId, err := client.ChainID(context.Background())
 	if err != nil {
-		return Result{Success: false, Error: err, TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), nil)}
+		return Result{Success: false, Error: err, TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), nil, nil)}
 	}
 
 	signedTx, err := signer.SignTx(tx, chainId)
 	if err != nil {
-		return Result{Success: false, Error: err, TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), nil)}
+		return Result{Success: false, Error: err, TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), nil, nil)}
 	}
 
 	encodedCallResult, err := client.CallContract(context.Background(), ethereum.CallMsg{
@@ -91,13 +91,13 @@ func write(
 	if err != nil {
 		blockNumber, err := client.BlockNumber(context.Background())
 		if err != nil {
-			return Result{Success: false, Error: err, TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), nil)}
+			return Result{Success: false, Error: err, TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), nil, nil)}
 		}
 
 		return Result{
 			Success:  false,
 			Error:    fmt.Errorf("error calling contract: %w, with data: %s", err, common.Bytes2Hex(callData)),
-			TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), big.NewInt(int64(blockNumber))),
+			TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), big.NewInt(int64(blockNumber)), nil),
 		}
 	}
 
@@ -106,7 +106,7 @@ func write(
 		return Result{
 			Success:  false,
 			Error:    fmt.Errorf("error sending signed transaction: %w", err),
-			TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), receipt.BlockNumber),
+			TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), receipt.BlockNumber, nil),
 		}
 	}
 
@@ -115,11 +115,11 @@ func write(
 		return Result{
 			Success:  false,
 			Error:    fmt.Errorf("error decoding call result: %w", err),
-			TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), receipt.BlockNumber),
+			TxOrCall: FromTxToTxOrCall(tx, *signer.GetAddress(), receipt.BlockNumber, nil),
 		}
 	}
 
-	return parseResults(decodedCallResult, receipt.Status == 1, receipt, FromTxToTxOrCall(signedTx, *signer.GetAddress(), receipt.BlockNumber))
+	return parseResults(decodedCallResult, receipt.Status == 1, receipt, FromTxToTxOrCall(signedTx, *signer.GetAddress(), receipt.BlockNumber, nil))
 }
 
 func txAsReadWithFailure(
@@ -301,23 +301,23 @@ func getData(
 
 	encodedCallResult, call, err := readContract(client, &ZERO_ADDRESS, to, callData, blockNumber, nil)
 	if err != nil {
-		return Result{Success: false, Error: err, TxOrCall: FromCallToTxOrCall(call, blockNumber)}
+		return Result{Success: false, Error: err, TxOrCall: FromCallToTxOrCall(call, blockNumber, nil)}
 	}
 
 	decodedCallResult, err := abi.Decode(returnTypes, encodedCallResult)
 	if err != nil {
-		return Result{Success: false, Error: err, TxOrCall: FromCallToTxOrCall(call, blockNumber)}
+		return Result{Success: false, Error: err, TxOrCall: FromCallToTxOrCall(call, blockNumber, nil)}
 	}
 
 	if blockNumber == nil {
 		blockNumberUint64, err := client.BlockNumber(context.Background())
 		if err != nil {
-			return Result{Success: false, Error: err, TxOrCall: FromCallToTxOrCall(call, blockNumber)}
+			return Result{Success: false, Error: err, TxOrCall: FromCallToTxOrCall(call, blockNumber, nil)}
 		}
 		blockNumber = big.NewInt(int64(blockNumberUint64))
 	}
 
-	return Result{Success: true, Result: decodedCallResult, TxOrCall: FromCallToTxOrCall(call, blockNumber)}
+	return Result{Success: true, Result: decodedCallResult, TxOrCall: FromCallToTxOrCall(call, blockNumber, nil)}
 }
 
 func makeCall(
@@ -387,7 +387,7 @@ func makeCall(
 		blockNumber = big.NewInt(int64(blockNumberUint64))
 	}
 
-	return decodedCallResult, decodedAggregatedCallsResultVar, FromCallToTxOrCall(call, blockNumber), nil
+	return decodedCallResult, decodedAggregatedCallsResultVar, FromCallToTxOrCall(call, blockNumber, overrides), nil
 }
 
 func parseResults(

@@ -24,6 +24,7 @@ type TxOrCall struct {
 	BlockNumber *big.Int
 
 	AccessList types.AccessList
+	Overrides  StateOverride
 }
 
 func (t *TxOrCall) String() string {
@@ -37,6 +38,7 @@ func (t *TxOrCall) String() string {
 	Nonce: %d,
 	BlockNumber: %s,
 	AccessList: %v,
+	Overrides: %v,
 }
 `,
 		t.From.Hex(),
@@ -48,10 +50,11 @@ func (t *TxOrCall) String() string {
 		t.Nonce,
 		t.BlockNumber.String(),
 		t.AccessList,
+		t.Overrides,
 	)
 }
 
-func FromTxToTxOrCall(tx *types.Transaction, from common.Address, blockNumber *big.Int) TxOrCall {
+func FromTxToTxOrCall(tx *types.Transaction, from common.Address, blockNumber *big.Int, overrides StateOverride) TxOrCall {
 	return TxOrCall{
 		From:        from,
 		To:          tx.To(),
@@ -62,10 +65,11 @@ func FromTxToTxOrCall(tx *types.Transaction, from common.Address, blockNumber *b
 		Nonce:       tx.Nonce(),
 		AccessList:  tx.AccessList(),
 		BlockNumber: blockNumber,
+		Overrides:   overrides,
 	}
 }
 
-func FromCallToTxOrCall(call *ethereum.CallMsg, blockNumber *big.Int) TxOrCall {
+func FromCallToTxOrCall(call *ethereum.CallMsg, blockNumber *big.Int, overrides StateOverride) TxOrCall {
 	return TxOrCall{
 		From:        call.From,
 		To:          call.To,
@@ -74,6 +78,7 @@ func FromCallToTxOrCall(call *ethereum.CallMsg, blockNumber *big.Int) TxOrCall {
 		Value:       call.Value,
 		Data:        call.Data,
 		BlockNumber: blockNumber,
+		Overrides:   overrides,
 	}
 }
 
@@ -84,12 +89,16 @@ type Result struct {
 	TxOrCall TxOrCall
 }
 
-func (r *Result) Print(full bool) {
+func (r *Result) Description(full bool) string {
 	if full {
-		fmt.Printf("%+v\n", r)
+		return fmt.Sprintf("%+v", r)
 	} else {
-		fmt.Printf("Success: %+v, Result: %+v \n", r.Success, r.Result)
+		return fmt.Sprintf("Success: %+v, Result: %+v", r.Success, r.Result)
 	}
+}
+
+func (r *Result) Print(full bool) {
+	fmt.Println(r.Description(full))
 }
 
 type commonCall struct {
