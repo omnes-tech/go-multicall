@@ -125,6 +125,8 @@ github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
 github.com/omnes-tech/abi v0.1.36 h1:UG6z5InElG0bGujHAMSc7PQRfgxJ8BIkD4MYCjds5kU=
 github.com/omnes-tech/abi v0.1.36/go.mod h1:y6KKLkCgQJE5pEfpVUjD6nZZf9Cafn92w+ZM0SbQ1sI=
+github.com/omnes-tech/abi v0.1.40 h1:zHLNVs3ldHWPGHkL9QjmeZccS2eFIAKZxJl1VmZ2D3Q=
+github.com/omnes-tech/abi v0.1.40/go.mod h1:y6KKLkCgQJE5pEfpVUjD6nZZf9Cafn92w+ZM0SbQ1sI=
 github.com/opentracing/opentracing-go v1.1.0 h1:pWlfV3Bxv7k65HYwkikxat0+s3pV4bsqf19k25Ur8rU=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
 github.com/peterh/liner v1.1.1-0.20190123174540-a2c9a5303de7 h1:oYW+YCJ1pachXTQmzR3rNLYGGz4g/UgFcjb28p/viDM=

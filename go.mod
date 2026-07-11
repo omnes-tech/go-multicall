@@ -6,7 +6,7 @@ toolchain go1.23.10
 
 require (
 	github.com/ethereum/go-ethereum v1.16.1
-	github.com/omnes-tech/abi v0.1.36
+	github.com/omnes-tech/abi v0.1.40
 )
 
 require (
