@@ -163,7 +163,7 @@ func asRead(
 	funcSignature string, txReturnTypes []string, blockNumber *big.Int,
 	overrides StateOverride,
 ) Result {
-	arrayfiedCalls, _, err := calls.ToArray(true, false)
+	arrayfiedCalls, msgValue, err := calls.ToArray(true, false)
 	if err != nil {
 		return Result{Success: false, Error: err}
 	}
@@ -183,6 +183,7 @@ func asRead(
 		client,
 		from,
 		to,
+		msgValue,
 		callData,
 		txReturnTypes,
 		false,
@@ -244,7 +245,7 @@ func read(
 	txReturnTypes []string, multicallAddress *common.Address, blockNumber *big.Int,
 	isSimulation bool, withValue bool, overrides StateOverride,
 ) Result {
-	arrayfiedCalls, _, err := calls.ToArray(withValue, false)
+	arrayfiedCalls, msgValue, err := calls.ToArray(withValue, false)
 	if err != nil {
 		return Result{Success: false, Error: err}
 	}
@@ -269,6 +270,7 @@ func read(
 		client,
 		from,
 		to,
+		msgValue,
 		callData,
 		txReturnTypes,
 		isSimulation,
@@ -299,7 +301,7 @@ func getData(
 		return Result{Success: false, Error: err}
 	}
 
-	encodedCallResult, call, err := readContract(client, &ZERO_ADDRESS, to, callData, blockNumber, nil)
+	encodedCallResult, call, err := readContract(client, &ZERO_ADDRESS, to, nil, callData, blockNumber, nil)
 	if err != nil {
 		return Result{Success: false, Error: err, TxOrCall: FromCallToTxOrCall(call, blockNumber, nil)}
 	}
@@ -321,7 +323,7 @@ func getData(
 }
 
 func makeCall(
-	calls CallsInterface, client *ethclient.Client, from *common.Address, to *common.Address, callData []byte, txReturnTypes []string,
+	calls CallsInterface, client *ethclient.Client, from *common.Address, to *common.Address, value *big.Int, callData []byte, txReturnTypes []string,
 	isSimulation bool, multicallAddress *common.Address, blockNumber *big.Int, overrides StateOverride,
 ) ([]any, []any, TxOrCall, error) {
 	if !true {
@@ -329,7 +331,7 @@ func makeCall(
 	}
 
 	var decodedCallResult []any
-	encodedCallResult, call, err := readContract(client, from, to, callData, blockNumber, overrides)
+	encodedCallResult, call, err := readContract(client, from, to, value, callData, blockNumber, overrides)
 	if err != nil && !isSimulation {
 		return nil, nil, TxOrCall{}, err
 	} else if isSimulation {
@@ -456,7 +458,12 @@ func decodeAggregateCallsResult(result []any, calls CallsInterface) ([]any, erro
 			continue
 		}
 
-		decodedResult = append(decodedResult, res.([]any))
+		resAny, ok := res.([]any)
+		if ok {
+			decodedResult = append(decodedResult, resAny)
+		} else {
+			decodedResult = append(decodedResult, res)
+		}
 	}
 
 	return decodedResult, nil

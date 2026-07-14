@@ -461,15 +461,17 @@ type Overrides struct {
 
 // CallMsg-equivalent as a raw map that handles JSON-marshaled RPC data
 type CallArgs struct {
-	From common.Address  `json:"from,omitempty"`
-	To   *common.Address `json:"to,omitempty"`
-	Data hexutil.Bytes   `json:"data,omitempty"`
+	From  common.Address  `json:"from,omitempty"`
+	To    *common.Address `json:"to,omitempty"`
+	Data  hexutil.Bytes   `json:"data,omitempty"`
+	Value *big.Int        `json:"value,omitempty"`
 }
 
 func (c *CallArgs) ToEthereumCallMsg() *ethereum.CallMsg {
 	return &ethereum.CallMsg{
-		From: c.From,
-		To:   c.To,
-		Data: c.Data,
+		From:  c.From,
+		To:    c.To,
+		Data:  c.Data,
+		Value: c.Value,
 	}
 }

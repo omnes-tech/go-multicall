@@ -18,7 +18,7 @@ import (
 
 // readContract makes a call to a contract and returns the returned bytecode.
 func readContract(
-	client *ethclient.Client, from *common.Address, to *common.Address, encodedCall []byte, blockNumber *big.Int, overrides StateOverride,
+	client *ethclient.Client, from *common.Address, to *common.Address, value *big.Int, encodedCall []byte, blockNumber *big.Int, overrides StateOverride,
 ) ([]byte, *ethereum.CallMsg, error) {
 	if from == nil {
 		from = &ZERO_ADDRESS
@@ -32,9 +32,10 @@ func readContract(
 	}
 
 	call := CallArgs{
-		From: *from,
-		To:   to,
-		Data: hexutil.Bytes(encodedCall),
+		From:  *from,
+		To:    to,
+		Data:  hexutil.Bytes(encodedCall),
+		Value: value,
 	}
 
 	var result hexutil.Bytes
