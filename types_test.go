@@ -287,13 +287,13 @@ func TestOverrideAccount_Add_State(t *testing.T) {
 	})
 }
 
-func TestStateOverride_Add(t *testing.T) {
+func TestStateOverride_AddAccount(t *testing.T) {
 	addr1 := common.HexToAddress("0x1111111111111111111111111111111111111111")
 	addr2 := common.HexToAddress("0x2222222222222222222222222222222222222222")
 
 	t.Run("inserts new address", func(t *testing.T) {
 		s := StateOverride{}
-		s.Add(addr1, OverrideAccount{Balance: balanceHex(100)})
+		s.AddAccount(addr1, OverrideAccount{Balance: balanceHex(100)})
 
 		got, ok := s[addr1]
 		if !ok {
@@ -308,7 +308,7 @@ func TestStateOverride_Add(t *testing.T) {
 		s := StateOverride{
 			addr1: {Balance: balanceHex(100)},
 		}
-		s.Add(addr1, OverrideAccount{Balance: balanceHex(25)})
+		s.AddAccount(addr1, OverrideAccount{Balance: balanceHex(25)})
 
 		got := s[addr1]
 		if got.Balance == nil || got.Balance.ToInt().Int64() != 125 {
@@ -318,14 +318,90 @@ func TestStateOverride_Add(t *testing.T) {
 
 	t.Run("keeps distinct addresses independent", func(t *testing.T) {
 		s := StateOverride{}
-		s.Add(addr1, OverrideAccount{Balance: balanceHex(100)})
-		s.Add(addr2, OverrideAccount{Balance: balanceHex(200)})
+		s.AddAccount(addr1, OverrideAccount{Balance: balanceHex(100)})
+		s.AddAccount(addr2, OverrideAccount{Balance: balanceHex(200)})
 
 		if s[addr1].Balance.ToInt().Int64() != 100 {
 			t.Fatalf("addr1 Balance = %v, want 100", s[addr1].Balance)
 		}
 		if s[addr2].Balance.ToInt().Int64() != 200 {
 			t.Fatalf("addr2 Balance = %v, want 200", s[addr2].Balance)
+		}
+	})
+}
+
+func TestStateOverride_Add(t *testing.T) {
+	addr1 := common.HexToAddress("0x1111111111111111111111111111111111111111")
+	addr2 := common.HexToAddress("0x2222222222222222222222222222222222222222")
+	addr3 := common.HexToAddress("0x3333333333333333333333333333333333333333")
+
+	t.Run("initializes nil receiver and copies other", func(t *testing.T) {
+		var s StateOverride
+		other := StateOverride{
+			addr1: {Balance: balanceHex(100)},
+			addr2: {Balance: balanceHex(200)},
+		}
+
+		s.Add(other)
+
+		if s == nil {
+			t.Fatal("expected receiver map to be initialized")
+		}
+		if s[addr1].Balance.ToInt().Int64() != 100 {
+			t.Fatalf("addr1 Balance = %v, want 100", s[addr1].Balance)
+		}
+		if s[addr2].Balance.ToInt().Int64() != 200 {
+			t.Fatalf("addr2 Balance = %v, want 200", s[addr2].Balance)
+		}
+	})
+
+	t.Run("merges overlapping addresses", func(t *testing.T) {
+		s := StateOverride{
+			addr1: {Balance: balanceHex(100)},
+		}
+		other := StateOverride{
+			addr1: {Balance: balanceHex(25)},
+		}
+
+		s.Add(other)
+
+		if s[addr1].Balance.ToInt().Int64() != 125 {
+			t.Fatalf("addr1 Balance = %v, want 125", s[addr1].Balance)
+		}
+	})
+
+	t.Run("unions distinct addresses from both sides", func(t *testing.T) {
+		s := StateOverride{
+			addr1: {Balance: balanceHex(100)},
+			addr2: {Balance: balanceHex(200)},
+		}
+		other := StateOverride{
+			addr2: {Balance: balanceHex(50)},
+			addr3: {Balance: balanceHex(300)},
+		}
+
+		s.Add(other)
+
+		if s[addr1].Balance.ToInt().Int64() != 100 {
+			t.Fatalf("addr1 Balance = %v, want 100", s[addr1].Balance)
+		}
+		if s[addr2].Balance.ToInt().Int64() != 250 {
+			t.Fatalf("addr2 Balance = %v, want 250", s[addr2].Balance)
+		}
+		if s[addr3].Balance.ToInt().Int64() != 300 {
+			t.Fatalf("addr3 Balance = %v, want 300", s[addr3].Balance)
+		}
+	})
+
+	t.Run("nil other is a no-op", func(t *testing.T) {
+		s := StateOverride{
+			addr1: {Balance: balanceHex(100)},
+		}
+
+		s.Add(nil)
+
+		if len(s) != 1 || s[addr1].Balance.ToInt().Int64() != 100 {
+			t.Fatalf("unexpected state after nil Add: %#v", s)
 		}
 	})
 }

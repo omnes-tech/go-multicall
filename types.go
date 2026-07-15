@@ -475,7 +475,7 @@ func (o *OverrideAccount) Add(other OverrideAccount) {
 
 type StateOverride map[common.Address]OverrideAccount
 
-func (s *StateOverride) Add(address common.Address, override OverrideAccount) {
+func (s *StateOverride) AddAccount(address common.Address, override OverrideAccount) {
 	current, ok := (*s)[address]
 	if ok {
 		current.Add(override)
@@ -483,6 +483,16 @@ func (s *StateOverride) Add(address common.Address, override OverrideAccount) {
 		return
 	}
 	(*s)[address] = override
+}
+
+func (s *StateOverride) Add(other StateOverride) {
+	if *s == nil {
+		*s = make(StateOverride)
+	}
+
+	for address, override := range other {
+		s.AddAccount(address, override)
+	}
 }
 
 type Overrides struct {
