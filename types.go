@@ -451,7 +451,39 @@ type OverrideAccount struct {
 	Code      hexutil.Bytes               `json:"code,omitempty"`
 }
 
+func (o *OverrideAccount) Add(other OverrideAccount) {
+	o.StateDiff = mergeStorageMaps(o.StateDiff, other.StateDiff)
+	o.State = mergeStorageMaps(o.State, other.State)
+	if other.Balance != nil {
+		if o.Balance != nil {
+			summed := new(big.Int).Add(o.Balance.ToInt(), other.Balance.ToInt())
+			b := hexutil.Big(*summed)
+			o.Balance = &b
+		} else {
+			b := hexutil.Big(*new(big.Int).Set(other.Balance.ToInt()))
+			o.Balance = &b
+		}
+	}
+	if other.Nonce != nil {
+		nonce := *other.Nonce
+		o.Nonce = &nonce
+	}
+	if other.Code != nil {
+		o.Code = append(hexutil.Bytes{}, other.Code...)
+	}
+}
+
 type StateOverride map[common.Address]OverrideAccount
+
+func (s *StateOverride) Add(address common.Address, override OverrideAccount) {
+	current, ok := (*s)[address]
+	if ok {
+		current.Add(override)
+		(*s)[address] = current // required: Add mutates a copy
+		return
+	}
+	(*s)[address] = override
+}
 
 type Overrides struct {
 	From           *common.Address
