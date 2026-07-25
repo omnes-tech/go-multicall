@@ -31,11 +31,18 @@ func readContract(
 		blockIdentifier = "latest"
 	}
 
+	var valueBig hexutil.Big
+	if value != nil {
+		valueBig = hexutil.Big(*value)
+	} else {
+		valueBig = hexutil.Big{}
+	}
+
 	call := CallArgs{
 		From:  *from,
 		To:    to,
 		Data:  hexutil.Bytes(encodedCall),
-		Value: value,
+		Value: &valueBig,
 	}
 
 	var result hexutil.Bytes

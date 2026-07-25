@@ -506,7 +506,7 @@ type CallArgs struct {
 	From  common.Address  `json:"from,omitempty"`
 	To    *common.Address `json:"to,omitempty"`
 	Data  hexutil.Bytes   `json:"data,omitempty"`
-	Value *big.Int        `json:"value,omitempty"`
+	Value *hexutil.Big    `json:"value,omitempty"`
 }
 
 func (c *CallArgs) ToEthereumCallMsg() *ethereum.CallMsg {
@@ -514,6 +514,6 @@ func (c *CallArgs) ToEthereumCallMsg() *ethereum.CallMsg {
 		From:  c.From,
 		To:    c.To,
 		Data:  c.Data,
-		Value: c.Value,
+		Value: c.Value.ToInt(),
 	}
 }
