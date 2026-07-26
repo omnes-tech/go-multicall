@@ -358,6 +358,8 @@ func makeCall(
 			} else {
 				return nil, nil, TxOrCall{}, fmt.Errorf("error decoding revert reason: %s", common.Bytes2Hex(encodedRevert))
 			}
+		} else {
+			return nil, nil, FromCallToTxOrCall(call, blockNumber, overrides), fmt.Errorf("error calling contract: %w", err)
 		}
 	}
 
